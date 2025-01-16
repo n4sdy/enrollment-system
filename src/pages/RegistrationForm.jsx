@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ProgressHeader from "./ProgressHeader";
 import styles from "../styles/RegistrationForm.module.css";
 
+
 const RegistrationForm = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
@@ -13,6 +14,8 @@ const RegistrationForm = () => {
     preferredCourse: "",
   });
 
+  const [errors, setErrors] = useState({}); // Tracks validation errors
+
   // Handle input changes for dropdowns
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -21,8 +24,11 @@ const RegistrationForm = () => {
       [name]: value,
       // Reset dependent fields if parent field changes
       ...(name === "applicantType" && { seniorHighTrack: "", preferredCourse: "" }),
-      ...(name === "seniorHighTrack" && { preferredCourse: "" }),
+      ...(name === "preferredProgram" && { preferredCourse: "" }),
     }));
+
+    // Clear the error for the field being updated
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
   };
 
   const handleCancel = () => {
@@ -32,22 +38,55 @@ const RegistrationForm = () => {
       preferredProgram: "",
       preferredCourse: "",
     });
+    setErrors({});
   };
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Validate fields based on applicant type
+    if (!formData.applicantType) {
+      newErrors.applicantType = "Applicant type is required.";
+    }
+
+    if (formData.applicantType === "Senior High School Graduate") {
+      if (!formData.seniorHighTrack) {
+        newErrors.seniorHighTrack = "Senior High School track is required.";
+      }
+      if (!formData.preferredCourse) {
+        newErrors.preferredCourse = "Preferred course is required.";
+      }
+    } else if (formData.applicantType === "Transferee") {
+      if (!formData.preferredProgram) {
+        newErrors.preferredProgram = "Preferred program is required.";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0; // Return true if no errors
+  };
+
+  const handleNextPage = async (e) => {
     e.preventDefault();
-    goToNextPage();
-  };
 
-  const goToNextPage = () => {
-    setCurrentStep(1);
-    navigate("/ApplicantProfile");
+    // Validate form before proceeding
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      
+      navigate("/ApplicantProfile");
+    } catch (error) {
+      console.error("Error submitting the form:", error);
+      
+    }
   };
 
   return (
     <div className={styles.container}>
       <ProgressHeader currentStep={currentStep} />
-      <form className={styles.form} onSubmit={handleSubmit}>
+      <form className={styles.form} onSubmit={handleNextPage}>
         <h2 className={styles.formTitle}>Application Details</h2>
 
         {/* Applicant Type */}
@@ -64,6 +103,7 @@ const RegistrationForm = () => {
             <option value="Senior High School Graduate">Senior High School Graduate</option>
             <option value="Transferee">Transferee</option>
           </select>
+          {errors.applicantType && <p className={styles.error}>{errors.applicantType}</p>}
         </div>
 
         {/* Senior High School Graduate Fields */}
@@ -85,6 +125,7 @@ const RegistrationForm = () => {
                 <option value="HUMSS">HUMSS</option>
                 <option value="TVL">TVL</option>
               </select>
+              {errors.seniorHighTrack && <p className={styles.error}>{errors.seniorHighTrack}</p>}
             </div>
 
             {/* Preferred Course */}
@@ -99,9 +140,10 @@ const RegistrationForm = () => {
                   required
                 >
                   <option value="">Select</option>
-                  <option value="Engineering">Computer Science - BSCS</option>
-                  <option value="Business Administration">Information Technology - IT</option>
+                  <option value="Computer Science - BSCS">Computer Science - BSCS</option>
+                  <option value="Information Technology - BSIT">Information Technology - IT</option>
                 </select>
+                {errors.preferredCourse && <p className={styles.error}>{errors.preferredCourse}</p>}
               </div>
             )}
           </>
@@ -122,6 +164,7 @@ const RegistrationForm = () => {
               <option value="Computer Science - BSCS">Computer Science - BSCS</option>
               <option value="Information Technology - BSIT">Information Technology - BSIT</option>
             </select>
+            {errors.preferredProgram && <p className={styles.error}>{errors.preferredProgram}</p>}
           </div>
         )}
 

@@ -10,19 +10,12 @@ import FamilyProfile from './pages/FamilyProfile.jsx';
 import EducationalProfile from './pages/EducationalProfile.jsx';
 import UploadRequirements from './pages/UploadRequirements.jsx';
 import ScheduleAppointment from './pages/ScheduleAppointment.jsx';
-import axios from 'axios';
+
 
 
 function App() {
 
-  const fetchAPI = async () => {
-    const response = await axios.get("http://localhost:8080/api");
-    console.log(response.data.fruits);
-  };
-
-  useEffect(() => {
-    fetchAPI();
-  }, []);
+  
 
   return (
     <Router>

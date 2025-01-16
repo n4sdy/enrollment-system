@@ -1,8 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
+import axios from 'axios'; // Import Axios for HTTP requests
 import Header from '../components/Header.jsx';
-import styles from '../styles/StudentPage.module.css'; // Importing as a module
+import styles from '../styles/StudentPage.module.css';
 
 const StudentPage = () => {
+  const [formData, setFormData] = useState({ studentID: '', password: '' });
+  const [message, setMessage] = useState(''); // For feedback messages
+
+  // Handle input changes
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post('http://localhost:5000/api/student/login', formData);
+      setMessage(response.data.message); // Display success message
+    } catch (error) {
+      setMessage(error.response?.data?.message || 'An error occurred');
+    }
+  };
   return (
     <div className={styles.studentPage}> {/* Use styles from the module */}
       {/* Left Section */}

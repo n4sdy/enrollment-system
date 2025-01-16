@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ProgressHeader from "./ProgressHeader"; // Import the ProgressHeader component
 import styles from "../styles/ProgressHeader.module.css"; // Import CSS module for ProgressHeader
 
@@ -9,13 +9,51 @@ const UploadRequirements = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  const navigate = useNavigate();
   const [imagePreviews, setImagePreviews] = useState({});
+  const [validationErrors, setValidationErrors] = useState({});
+  const [missingFilesError, setMissingFilesError] = useState(false);
   const [currentStep, setCurrentStep] = useState(4); // Assuming you are on step 4 (Upload Requirements)
 
-  // Handle image change for preview
-  const handleImageChange = (e, key) => {
+  // Validation constants
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png"];
+  const REQUIRED_FILES = [
+    "grade11_1st",
+    "grade11_2nd",
+    "grade12_1st",
+    "grade12_2nd",
+    "certificate_form_137",
+  ];
+
+  // Handle image change for preview and validation
+  const handleImageChange = async (e, key) => {
     const file = e.target.files[0];
+
     if (file) {
+      // File type validation
+      if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+        setValidationErrors((prev) => ({
+          ...prev,
+          [key]: "Only JPG and PNG files are allowed.",
+        }));
+        return;
+      }
+
+      // File size validation
+      if (file.size > MAX_FILE_SIZE) {
+        setValidationErrors((prev) => ({
+          ...prev,
+          [key]: "File size must not exceed 5MB.",
+        }));
+        return;
+      }
+
+      // If validation passes, clear previous errors
+      setValidationErrors((prev) => ({ ...prev, [key]: null }));
+      setMissingFilesError(false);
+
+      // Preview the image
       const reader = new FileReader();
       reader.onload = () => {
         setImagePreviews((prev) => ({
@@ -27,13 +65,24 @@ const UploadRequirements = () => {
     }
   };
 
-  // Handle deleting an image
   const handleDeleteImage = (key) => {
     setImagePreviews((prev) => {
-      const updated = { ...prev };
-      delete updated[key];
-      return updated;
+      const updatedPreviews = { ...prev };
+      delete updatedPreviews[key];
+      return updatedPreviews;
     });
+  };
+
+  // Validate all required files before proceeding
+  const validateAndProceed = () => {
+    const missingFiles = REQUIRED_FILES.filter((key) => !imagePreviews[key]);
+
+    if (missingFiles.length > 0) {
+      setMissingFilesError(true);
+    } else {
+      setMissingFilesError(false);
+      navigate("/ScheduleAppointment");
+    }
   };
 
   // Render Upload Box
@@ -85,6 +134,17 @@ const UploadRequirements = () => {
         accept="image/*"
         onChange={(e) => handleImageChange(e, key)}
       />
+      {validationErrors[key] && (
+        <div
+          className="text-danger position-absolute"
+          style={{
+            bottom: "-20px",
+            fontSize: "12px",
+          }}
+        >
+          {validationErrors[key]}
+        </div>
+      )}
     </label>
   );
 
@@ -99,72 +159,62 @@ const UploadRequirements = () => {
     >
       {/* Include ProgressHeader at the top */}
       <ProgressHeader currentStep={currentStep} />
-      <div
-          className="card shadow p-4"
-          style={{
-            borderRadius: "10px",
-            backgroundColor: "#ffffff",
-            boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-          }}
-        >
 
-      <h1 className="mb-4">
-        <i className="bi bi-paperclip"></i> Requirements
-      </h1>
-      <hr />
+      <div>
+        <h1 className="mb-4">
+          <i className="bi bi-paperclip"></i> Requirements
+        </h1>
+        <hr />
 
-      {/* Grade 11 Report Card */}
-      <section className="mb-4">
-        <h5>Grade 11 Report Card</h5>
-        <div className="d-flex flex-wrap gap-3">
-          <div className="col-12 col-md-auto">
+        {/* Grade 11 Report Card */}
+        <section className="mb-4">
+          <h5>Grade 11 Report Card</h5>
+          <div className="d-flex flex-wrap gap-3">
             {renderUploadBox("grade11_1st", "1st Semester")}
-          </div>
-          <div className="col-12 col-md-auto">
             {renderUploadBox("grade11_2nd", "2nd Semester")}
           </div>
-        </div>
-      </section>
-      <hr />
+        </section>
+        <hr />
 
-      {/* Grade 12 Report Card */}
-      <section className="mb-4">
-        <h5>Grade 12 Report Card</h5>
-        <div className="d-flex flex-wrap gap-3">
-          <div className="col-12 col-md-auto">
+        {/* Grade 12 Report Card */}
+        <section className="mb-4">
+          <h5>Grade 12 Report Card</h5>
+          <div className="d-flex flex-wrap gap-3">
             {renderUploadBox("grade12_1st", "1st Semester")}
-          </div>
-          <div className="col-12 col-md-auto">
             {renderUploadBox("grade12_2nd", "2nd Semester")}
           </div>
-        </div>
-      </section>
-      <hr />
+        </section>
+        <hr />
 
-      {/* Certificate of Non-Issuance of Form 137 */}
-      <section className="mb-4">
-        <h5>Certificate of Non-Issuance of Form 137</h5>
-        <div className="row g-3">
-          <div className="col-md-6 text-center">
-            {renderUploadBox("certificate_form_137", "Upload Certificate")}
+        {/* Certificate of Non-Issuance of Form 137 */}
+        <section className="mb-4">
+          <h5>Certificate of Non-Issuance of Form 137</h5>
+          {renderUploadBox("certificate_form_137", "Upload Certificate")}
+        </section>
+
+        {/* Error message if files are missing */}
+        {missingFilesError && (
+          <div className="text-danger mb-3">
+            Please upload all required files before proceeding.
           </div>
-        </div>
-      </section>
+        )}
 
-      {/* Navigation Buttons */}
-      <div className="d-flex justify-content-between mt-4">
-        <Link to="/EducationalProfile">
-          <button type="submit" className="btn btn-success mt-4">
-            Back Page
-          </button>
-        </Link>
-        <Link to="/ScheduleAppointment">
-          <button type="submit" className="btn btn-success mt-4">
+        {/* Navigation Buttons */}
+        <div className="d-flex justify-content-between mt-4">
+          <Link to="/EducationalProfile">
+            <button type="button" className="btn btn-success">
+              Back Page
+            </button>
+          </Link>
+          <button
+            type="button"
+            className="btn btn-success"
+            onClick={validateAndProceed}
+          >
             Next Page
           </button>
-        </Link>
+        </div>
       </div>
-    </div>
     </div>
   );
 };

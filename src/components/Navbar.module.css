@@ -1,0 +1,42 @@
+/* Base link styling */
+.navLink {
+    color: #000; /* Black text */
+    text-decoration: none;
+    position: relative; /* Required for underline positioning */
+    padding: 0.5rem; /* Add some padding for spacing */
+    transition: color 0.3s ease-in-out; /* Smooth transition for color */
+  }
+  
+  /* Underline effect on hover */
+  .navLink::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0%;
+    height: 2px; /* Thickness of the underline */
+    background-color: forestgreen; /* Underline color */
+    transition: width 0.3s ease-in-out; /* Smooth width animation */
+  }
+  
+  /* Hover effect to expand underline */
+  .navLink:hover::after {
+    width: 100%; /* Full underline width */
+  }
+  
+  /* Active link styling */
+  .active {
+    color: #007f00; /* Highlight active link (optional) */
+  }
+  
+  /* Persistent underline for active links */
+  .active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%; /* Full underline width */
+    height: 2px; /* Thickness of the underline */
+    background-color: forestgreen; /* Underline color */
+  }
+  

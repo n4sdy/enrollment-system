@@ -1,8 +1,25 @@
-import React from 'react';
-import Header from '../components/Header.jsx';
-import styles from '../styles/StudentPage.module.css'; // Importing as a module
+import React, { useState } from "react";
+import axios from "axios"; // Import Axios for HTTP requests
+import Header from "../components/Header.jsx";
+import styles from "../styles/StudentPage.module.css";
 
 const FacultyPage = () => {
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [error, setError] = useState(null);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post("/api/faculty/login", formData);
+      alert(response.data.message); // Display success message
+    } catch (err) {
+      setError(err.response?.data?.message || "An error occurred");
+    }
+  };
   return (
     <div className={styles.studentPage}> {/* Use styles from the module */}
       {/* Left Section */}
@@ -16,11 +33,11 @@ const FacultyPage = () => {
         <div className={styles.loginForm}>
           <form>
             <div className={styles.formGroup}>
-              <label htmlFor="studentID">CvSU Email</label>
+              <label htmlFor="emailID">CvSU Email</label>
               <input
                 type="text"
-                id="studentID"
-                name="studentID"
+                id="emailID"
+                name="emailID"
                 placeholder="Enter your CvSU Email here."
                 required
               />
