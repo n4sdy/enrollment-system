@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ProgressHeader from "./ProgressHeader"; // Import ProgressHeader
 import styles from '../styles/ApplicantProfile.module.css';
@@ -41,7 +41,13 @@ const ApplicantProfile = () => {
   const [errorMessage, setErrorMessage] = useState(""); // State to hold error message
   const [isOpen, setIsOpen] = useState(true); // For mobile sidenav toggle
   
-  // State for tracking the current step
+  // Load form data from session storage when the component mounts
+  useEffect(() => {
+    const savedFormValues = JSON.parse(sessionStorage.getItem("formValues"));
+    if (savedFormValues) {
+      setFormValues(savedFormValues);
+    }
+  }, []);
   
 
   // Handle image change for preview
@@ -77,10 +83,12 @@ const ApplicantProfile = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    setFormValues((prevValues) => ({
-      ...prevValues,
-      [name]: value,
-    }));
+    setFormValues((prevValues) => {
+      const updatedValues = { ...prevValues, [name]: value };
+      sessionStorage.setItem("formValues", JSON.stringify(updatedValues));
+      return updatedValues;
+    });
+    
 
     // Real-time validation
     validateField(name, value);
@@ -131,7 +139,7 @@ const ApplicantProfile = () => {
     default:
       break;
   }
-
+  setErrors((prevErrors) => ({ ...prevErrors, [name]: error }));
   return error;
 };
 
@@ -147,7 +155,15 @@ const calculateAge = (dob) => {
 };  
 const handleDOBChange = (e) => {
   const value = e.target.value;
-  setFormValues((prev) => ({ ...prev, dateOfBirth: value, age: calculateAge(value) }));
+    setFormValues((prev) => {
+      const updatedValues = {
+        ...prev,
+        dateOfBirth: value,
+        age: calculateAge(value),
+      };
+      sessionStorage.setItem("formValues", JSON.stringify(updatedValues));
+      return updatedValues;
+    });
 };
 
 
@@ -179,7 +195,7 @@ const handleDOBChange = (e) => {
   // Handle navigation to the previous page
   const handleBack = () => {
     setCurrentStep(0); // Return to the first step
-    navigate("/RegistrationForm", {state: { formData }}); // Replace '/previous-page' with the desired route
+    navigate("/RegistrationForm"); // Replace '/previous-page' with the desired route
   };
 
   return (

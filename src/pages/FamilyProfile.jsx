@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import ProgressHeader from "./ProgressHeader";
-
 
 const FamilyProfile = () => {
   const [currentStep, setCurrentStep] = useState(2);
@@ -13,14 +12,26 @@ const FamilyProfile = () => {
   });
   const [errors, setErrors] = useState({});
 
+  const navigate = useNavigate();
+
+  // Load saved data from sessionStorage on component mount
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const savedForm = sessionStorage.getItem("familyProfileForm");
+    const savedSiblings = sessionStorage.getItem("siblings");
+    if(savedForm) {
+      setForm(JSON.parse(savedForm));
+    }
+    if(savedSiblings){
+      setSiblings(JSON.parse(savedSiblings));
+    }
   }, []);
 
+  
+
   const handleInputChange = (section, field, value) => {
-    setForm((prev) => ({
-      ...prev,
-      [section]: { ...prev[section], [field]: value },
+    setForm((prevForm) => ({
+      ...prevForm,
+      [section]: { ...prevForm[section], [field]: value },
     }));
   };
 
@@ -42,7 +53,6 @@ const FamilyProfile = () => {
   const validate = () => {
     const newErrors = {};
 
-    // Validate parents and guardian
     ["parent1", "parent2", "guardian"].forEach((section) => {
       const fields = form[section];
       if (!fields.name.trim()) newErrors[`${section}Name`] = "Name is required.";
@@ -59,31 +69,21 @@ const FamilyProfile = () => {
         newErrors[`${section}Contact`] = "Valid contact number is required.";
     });
 
-    // Validate siblings
-    siblings.forEach((sibling, index) => {
-      if (!sibling.fullName.trim())
-        newErrors[`siblingFullName${index}`] = "Full name is required.";
-      if (!sibling.age || sibling.age <= 0)
-        newErrors[`siblingAge${index}`] = "Valid age is required.";
-    });
+    
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const navigate = useNavigate();
   const handleNextPage = (e) => {
     e.preventDefault();
     if (validate()) {
-      // Proceed to the next page
-      console.log("Form data:", { form, siblings });
       navigate("/EducationalProfile");
     }
   };
 
   const handleBack = () => {
-    setCurrentStep(0); // Return to the first step
-    navigate("/ApplicantProfile"); // Replace '/previous-page' with the desired route
+    navigate("/ApplicantProfile");
   };
 
   return (
@@ -230,14 +230,13 @@ const FamilyProfile = () => {
 
         {/* Navigation Buttons */}
         <div className="d-flex justify-content-between mt-4">
-          
-            <button type="button"
+          <button
+            type="button"
             className="btn btn-success mt-4"
             onClick={handleBack}
-            >
-              Back Page
-              </button>
-          
+          >
+            Back Page
+          </button>
           <button
             type="submit"
             className="btn btn-success mt-4"

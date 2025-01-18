@@ -26,6 +26,17 @@ const UploadRequirements = () => {
     "certificate_form_137",
   ];
 
+   // Load saved data from localStorage
+   useEffect(() => {
+    const savedPreviews = JSON.parse(sessionStorage.getItem("UploadRequirements")) || {};
+    setImagePreviews(savedPreviews);
+  }, []);
+
+  // Save data to localStorage whenever imagePreviews changes
+  useEffect(() => {
+    sessionStorage.setItem("UploadRequirements", JSON.stringify(imagePreviews));
+  }, [imagePreviews]);
+
   // Handle image change for preview and validation
   const handleImageChange = async (e, key) => {
     const file = e.target.files[0];
@@ -74,7 +85,7 @@ const UploadRequirements = () => {
   };
 
   // Validate all required files before proceeding
-  const validateAndProceed = () => {
+  const handleNextPage = () => {
     const missingFiles = REQUIRED_FILES.filter((key) => !imagePreviews[key]);
 
     if (missingFiles.length > 0) {
@@ -83,6 +94,10 @@ const UploadRequirements = () => {
       setMissingFilesError(false);
       navigate("/ScheduleAppointment");
     }
+  };
+
+  const handleBack = () => {
+    navigate("/EducationalProfile");
   };
 
   // Render Upload Box
@@ -201,15 +216,18 @@ const UploadRequirements = () => {
 
         {/* Navigation Buttons */}
         <div className="d-flex justify-content-between mt-4">
-          <Link to="/EducationalProfile">
-            <button type="button" className="btn btn-success">
+          
+            <button 
+            type="button" 
+            className="btn btn-success"
+            onClick={handleBack}>
               Back Page
             </button>
-          </Link>
+          
           <button
-            type="button"
+            type="submit"
             className="btn btn-success"
-            onClick={validateAndProceed}
+            onClick={handleNextPage}
           >
             Next Page
           </button>

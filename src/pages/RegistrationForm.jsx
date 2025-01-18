@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ProgressHeader from "./ProgressHeader";
 import styles from "../styles/RegistrationForm.module.css";
-
 
 const RegistrationForm = () => {
   const navigate = useNavigate();
@@ -14,37 +13,43 @@ const RegistrationForm = () => {
     preferredCourse: "",
   });
 
-  const [errors, setErrors] = useState({}); // Tracks validation errors
+  const [errors, setErrors] = useState({});
 
-  // Handle input changes for dropdowns
+  // Load form data from session storage when the component mounts
+  useEffect(() => {
+    const savedFormData = JSON.parse(sessionStorage.getItem("formData"));
+    if (savedFormData) {
+      setFormData(savedFormData);
+    }
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
+    const updatedData = {
+      ...formData,
       [name]: value,
-      // Reset dependent fields if parent field changes
       ...(name === "applicantType" && { seniorHighTrack: "", preferredCourse: "" }),
       ...(name === "preferredProgram" && { preferredCourse: "" }),
-    }));
-
-    // Clear the error for the field being updated
+    };
+    setFormData(updatedData);
+    sessionStorage.setItem("formData", JSON.stringify(updatedData));
     setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
   };
 
   const handleCancel = () => {
-    setFormData({
+    const resetData = {
       applicantType: "",
       seniorHighTrack: "",
       preferredProgram: "",
       preferredCourse: "",
-    });
+    };
+    setFormData(resetData);
     setErrors({});
+    sessionStorage.removeItem("formData");
   };
 
   const validateForm = () => {
     const newErrors = {};
-
-    // Validate fields based on applicant type
     if (!formData.applicantType) {
       newErrors.applicantType = "Applicant type is required.";
     }
@@ -63,25 +68,16 @@ const RegistrationForm = () => {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Return true if no errors
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleNextPage = async (e) => {
+  const handleNextPage = (e) => {
     e.preventDefault();
-
-    // Validate form before proceeding
-    if (!validateForm()) {
-      return;
-    }
-
-    try {
-      
-      navigate("/ApplicantProfile");
-    } catch (error) {
-      console.error("Error submitting the form:", error);
-      
-    }
+    if (!validateForm()) return;
+    navigate("/ApplicantProfile");
   };
+
+  
 
   return (
     <div className={styles.container}>
@@ -89,7 +85,6 @@ const RegistrationForm = () => {
       <form className={styles.form} onSubmit={handleNextPage}>
         <h2 className={styles.formTitle}>Application Details</h2>
 
-        {/* Applicant Type */}
         <div className={styles.field}>
           <label htmlFor="applicantType">Type of Applicant</label>
           <select
@@ -106,10 +101,8 @@ const RegistrationForm = () => {
           {errors.applicantType && <p className={styles.error}>{errors.applicantType}</p>}
         </div>
 
-        {/* Senior High School Graduate Fields */}
         {formData.applicantType === "Senior High School Graduate" && (
           <>
-            {/* Senior High Track */}
             <div className={styles.field}>
               <label htmlFor="seniorHighTrack">Senior High School Track</label>
               <select
@@ -128,7 +121,6 @@ const RegistrationForm = () => {
               {errors.seniorHighTrack && <p className={styles.error}>{errors.seniorHighTrack}</p>}
             </div>
 
-            {/* Preferred Course */}
             {formData.seniorHighTrack && (
               <div className={styles.field}>
                 <label htmlFor="preferredCourse">Preferred Course</label>
@@ -141,7 +133,7 @@ const RegistrationForm = () => {
                 >
                   <option value="">Select</option>
                   <option value="Computer Science - BSCS">Computer Science - BSCS</option>
-                  <option value="Information Technology - BSIT">Information Technology - IT</option>
+                  <option value="Information Technology - BSIT">Information Technology - BSIT</option>
                 </select>
                 {errors.preferredCourse && <p className={styles.error}>{errors.preferredCourse}</p>}
               </div>
@@ -149,7 +141,6 @@ const RegistrationForm = () => {
           </>
         )}
 
-        {/* Transferee Fields */}
         {formData.applicantType === "Transferee" && (
           <div className={styles.field}>
             <label htmlFor="preferredProgram">Preferred Program</label>
@@ -168,11 +159,11 @@ const RegistrationForm = () => {
           </div>
         )}
 
-        {/* Buttons */}
         <div className={styles.buttons}>
           <button type="button" onClick={handleCancel} className={styles.cancelButton}>
             Reset
           </button>
+          
           <button type="submit" className={styles.submitButton}>
             Submit
           </button>

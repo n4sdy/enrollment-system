@@ -26,6 +26,14 @@ const EducationalProfile = () => {
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
+  // Load saved data from sessionStorage when the component mounts
+  useEffect(() => {
+    const savedData = sessionStorage.getItem("educationalFormValues");
+    if (savedData) {
+      setFormValues(JSON.parse(savedData));
+    }
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormValues((prevValues) => ({
@@ -49,8 +57,13 @@ const EducationalProfile = () => {
   const handleNextPage = (e) => {
     e.preventDefault();
     if (validateFields()) {
+       // Save form data to sessionStorage before navigating
+       sessionStorage.setItem("educationalFormValues", JSON.stringify(formValues));
       navigate("/UploadRequirements");
     }
+  };
+  const handleBack = () => {
+    navigate("/FamilyProfile");
   };
 
 return (
@@ -265,19 +278,22 @@ return (
 
           {/* Nav Button */}
           <div className="d-flex justify-content-between mt-4">
-            <Link to="/FamilyProfile">
-              <button type="submit" className="btn btn-success mt-4">
-                Back Page
-              </button>
-            </Link>
-            <Link to="/UploadRequirements">
+            
               <button 
               type="button" 
+              className="btn btn-success mt-4"
+              onClick={handleBack}>
+                Back Page
+              </button>
+            
+            
+              <button 
+              type="submit" 
               className="btn btn-success mt-4"
               onClick={handleNextPage}>
                 Next Page
               </button>
-            </Link>
+            
           </div>
         </div>
   </div>

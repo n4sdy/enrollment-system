@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ProgressHeader from "./ProgressHeader"; // Import the ProgressHeader component
 import axios from "axios";
 
@@ -9,6 +9,7 @@ const ScheduleAppointment = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(5); // Assuming you are on step 5
   const [preferredDate, setPreferredDate] = useState("");
   const [preferredTime, setPreferredTime] = useState("");
@@ -33,6 +34,10 @@ const ScheduleAppointment = () => {
       console.error("Error scheduling appointment:", error.response ? error.response.data : error.message);
       alert("Failed to schedule appointment. Check console for details.");
     }
+  };
+
+  const handleBack = () => {
+    navigate("/UploadRequirements");
   };
   
 
@@ -95,9 +100,15 @@ const ScheduleAppointment = () => {
 
       {/* Navigation Buttons */}
       <div className="d-flex justify-content-between mt-4">
-        <Link to="/UploadRequirements">
-          <button className="btn btn-success">Back Page</button>
-        </Link>
+        
+          <button 
+          type="button"
+          className="btn btn-success"
+          onClick={handleBack}
+          >
+            Back Page
+            </button>
+        
         <button 
           type="submit" 
           className="btn btn-success"
